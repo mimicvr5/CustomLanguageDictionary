@@ -4,14 +4,20 @@ const exportBtn = document.getElementById("exportBtn");
 const importBtn = document.getElementById("importBtn");
 const importFile = document.getElementById("importFile");
 
-function fetchWords() {
-  fetch("/api/words")
-    .then(res => res.json())
-    .then(words => displayWords(words));
+// Load words from localStorage
+function loadWords() {
+  const stored = localStorage.getItem("dictionary");
+  return stored ? JSON.parse(stored) : [];
 }
 
+// Save words to localStorage
+function saveWords(words) {
+  localStorage.setItem("dictionary", JSON.stringify(words));
+}
+
+// Display words
 function displayWords(words) {
-  // Sort by language
+  // Group by language
   const grouped = {};
   for (const w of words) {
     if (!grouped[w.language]) grouped[w.language] = [];
@@ -31,61 +37,78 @@ function displayWords(words) {
       // Bold the word in example
       let exampleText = item.example || "";
       if (item.word) {
-        // Escape special regex characters in the word
         const escaped = item.word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        // Match even if surrounded by punctuation or at string boundaries
         const regex = new RegExp(`(^|[^\\p{L}\\p{N}])(${escaped})(?=[^\\p{L}\\p{N}]|$)`, "giu");
         exampleText = exampleText.replace(regex, (match, before, word) => `${before}<b>${word}</b>`);
       }
 
-      const translation = item.meaning ? `<p><strong>Translation:</strong> ${item.meaning}</p>` : "";
+      const translation = item.translation || "(no translation provided)";
       const example = exampleText || "(no example provided)";
 
       card.innerHTML = `
-      <h3>${item.word || "(no word)"}</h3>
-      ${translation}
-      <p><strong>Example:</strong> ${example}</p>
+        <h3>${item.word || "(no word)"}</h3>
+        <p><strong>Translation:</strong> ${translation}</p>
+        <p><strong>Example:</strong> ${example}</p>
       `;
+
       wordList.appendChild(card);
     }
   }
 }
 
 // Add new word
-addBtn.onclick = async () => {
+addBtn.onclick = () => {
+  const words = loadWords();
   const data = {
-    language: document.getElementById("language").value,
-    word: document.getElementById("word").value,
-    translation: document.getElementById("translation").value,
-    example: document.getElementById("example").value
+    language: document.getElementById("language").value.trim(),
+    word: document.getElementById("word").value.trim(),
+    translation: document.getElementById("translation").value.trim(),
+    example: document.getElementById("example").value.trim()
   };
 
-  await fetch("/api/add", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
-  });
+  if (!data.language || !data.word) {
+    alert("Please provide at least a language and a word.");
+    return;
+  }
 
-  fetchWords();
+  words.push(data);
+  saveWords(words);
+  displayWords(words);
+
+  // Clear inputs
+  document.getElementById("language").value = "";
+  document.getElementById("word").value = "";
+  document.getElementById("translation").value = "";
+  document.getElementById("example").value = "";
 };
 
-// Export
+// Export dictionary as JSON file
 exportBtn.onclick = () => {
-  window.location.href = "/api/export";
+  const words = loadWords();
+  const blob = new Blob([JSON.stringify(words, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "dictionary.json";
+  a.click();
+  URL.revokeObjectURL(url);
 };
 
-// Import
+// Import dictionary from JSON file
 importBtn.onclick = () => importFile.click();
 importFile.onchange = async (e) => {
   const file = e.target.files[0];
+  if (!file) return;
   const text = await file.text();
-  const data = JSON.parse(text);
-  await fetch("/api/import", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
-  });
-  fetchWords();
+  try {
+    const data = JSON.parse(text);
+    if (!Array.isArray(data)) throw new Error("Invalid JSON format");
+    saveWords(data);
+    displayWords(data);
+  } catch (err) {
+    alert("Failed to import: " + err.message);
+  }
 };
 
-fetchWords();
+// Initial display
+displayWords(loadWords());
