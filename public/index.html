@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Dictionary</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>My Dictionary</h1>
+
+  <div class="form">
+    <input id="language" placeholder="Language" />
+    <input id="word" placeholder="Word" />
+    <input id="translation" placeholder="Translation" />
+    <input id="example" placeholder="Example sentence" />
+    <button id="addBtn">Add Word</button>
+    <button id="exportBtn">Export</button>
+    <input type="file" id="importFile" hidden />
+    <button id="importBtn">Import</button>
+  </div>
+
+  <div id="wordList"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>

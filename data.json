@@ -1,0 +1,26 @@
+[
+  {
+    "word": "hola",
+    "language": "Spanish",
+    "meaning": "hello",
+    "example": "Hola, ¿cómo estás?"
+  },
+  {
+    "word": "bonjour",
+    "language": "French",
+    "meaning": "hello",
+    "example": "Bonjour, comment ça va ?"
+  },
+  {
+    "word": "Привет",
+    "language": "Russian",
+    "meaning": "hello",
+    "example": "Привет, как дела?"
+  },
+  {
+    "word": "مرحبا",
+    "language": "Arabic",
+    "meaning": "Hello",
+    "example": "مرحبا، كيف حالك"
+  }
+]
